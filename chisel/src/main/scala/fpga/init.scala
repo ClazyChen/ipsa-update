@@ -19,11 +19,20 @@ object init {
         pipe.phv_out := phv
         pipe.ready_prev := false.B
 
-        when (~pipe.pause && (pipe.ready_next || ~phv.valid)) {
+        val release = ~pipe.pause && (pipe.ready_next || ~phv.valid)
+        when (release) {
             pipe.ready_prev := true.B
             phv := pipe.phv_in
         }
 
-        phv
+        (phv, release)
+    }
+
+    def latch(signal: UInt, release: Bool) = {
+        val r = Reg(UInt(signal.getWidth.W))
+        when (release) {
+            r := signal
+        }
+        r
     }
 }

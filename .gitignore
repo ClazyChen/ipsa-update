@@ -5,6 +5,7 @@ chisel/*.v
 chisel/.bsp
 chisel/project/target
 chisel/target
+chisel/test_run_dir
 chisel/src/main/scala/fpga-basic
 vivado/fpga-updated/fpga-updated.sims
 vivado/fpga-updated/fpga-updated.runs

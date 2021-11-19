@@ -5,9 +5,11 @@ import chisel3.util._
 
 object const {
     val processor_number = 32
+    val config_number = 2
     val max_header_number = 16
     val bits_per_cycle = 512 // max input bits per cycle
     val processor_id_width = log2Ceil(processor_number)
+    val config_id_width = log2Ceil(config_number)
 
     object PHV {
         val total_data_length  = 256
@@ -32,9 +34,7 @@ object const {
 
     object PROC /* processor */ {
         val cycle_number = 32
-
-        // for virtual pipeline
-        val gateway_cycle = 30
+        val cycle_id_width = log2Ceil(cycle_number)
     }
 
     object FBUF /* front buffer */ {
