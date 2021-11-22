@@ -13,7 +13,7 @@ class VirtualStageModify extends Bundle {
 // PHV[addr] = data
 class VirtualStage extends Module {
     val io = IO(new Bundle {
-        val pipe = new Pipeline
+        val pipe = new PipelinePause
         val mod  = new VirtualStageModify
     })
 

@@ -17,6 +17,15 @@ object init {
     def pipeline(pipe: Pipeline) = {
         val phv = Reg(new PHV)
         pipe.phv_out := phv
+        pipe.ready_prev := pipe.ready_next
+        when (pipe.ready_next) {
+            phv := pipe.phv_in
+        }
+        phv
+    }
+    def pipeline(pipe: PipelinePause) = {
+        val phv = Reg(new PHV)
+        pipe.phv_out := phv
         pipe.ready_prev := false.B
 
         val release = ~pipe.pause && (pipe.ready_next || ~phv.valid)

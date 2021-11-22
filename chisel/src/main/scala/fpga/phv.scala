@@ -25,9 +25,43 @@ class PHV extends Bundle {
 }
 
 class Pipeline extends Bundle {
-    val pause = Input(Bool()) // pause signal from controller
     val ready_next = Input(Bool())
     val ready_prev = Output(Bool())
     val phv_in  = Input(new PHV)
     val phv_out = Output(new PHV) 
+
+    def ~(next: Pipeline) = {  // directly connect this and next interface
+        this.ready_next  := next.ready_prev
+        next.phv_in      := this.phv_out
+        next
+    }
+    def ~>(next: Pipeline) = { // pass the signal from this.in to next.out
+        this.ready_prev  := next.ready_next
+        next.phv_out     := this.phv_in
+        next
+    }
+
+    def >>(inner: Pipeline) = { // embed inner interface in this (input port)
+        this.ready_prev  := inner.ready_prev
+        inner.phv_in     := this.phv_in
+        next
+    }
+    // def <<-(outer: Pipeline) = {
+    //     outer.ready_prev := this.ready_prev
+    //     this.phv_in      := outer.phv_in
+    // }
+
+    def <<(outer: Pipeline) = { // embed this interface in outer (output port)
+        this.ready_next  := outer.ready_next
+        outer.phv_out    := this.phv_out
+        next
+    }
+    // def >>-(inner: Pipeline) = {
+    //     inner.ready_next := this.ready_next
+    //     this.phv_out     := inner.phv_out
+    // }
+}
+
+class PipelinePause extends Pipeline {
+    val pause = Input(Bool()) // pause signal from controller
 }

@@ -18,7 +18,7 @@ class VirtualGatewayModify extends Bundle {
 
 class VirtualGateway extends Module {
     val io = IO(new Bundle {
-        val pipe = new Pipeline
+        val pipe = new PipelinePause
         val mod  = new VirtualGatewayModify
         // val gtw_in = Input(UInt(const.GTW.lut_entry_id_width.W))
     })

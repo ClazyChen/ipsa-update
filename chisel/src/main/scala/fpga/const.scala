@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 object const {
-    val processor_number = 32
+    val processor_number = 16
     val config_number = 2
     val max_header_number = 16
     val bits_per_cycle = 512 // max input bits per cycle
@@ -12,8 +12,8 @@ object const {
     val config_id_width = log2Ceil(config_number)
 
     object PHV {
-        val total_data_length  = 256
-        val header_data_length = 192
+        val total_data_length  = 128
+        val header_data_length = bits_per_cycle / 8
         val offset_width = log2Ceil(total_data_length)
 
         val transition_field_width = 16
@@ -38,10 +38,15 @@ object const {
     }
 
     object FBUF /* front buffer */ {
-        val capacity = 32
+        val capacity = processor_number + PROC.cycle_number
     }
 
     object PDQ /* packet data queue */ {
         val capacity = processor_number * PROC.cycle_number + FBUF.capacity
+    }
+
+    object CTRL /* controller */ {
+        val update_item_capacity = 256
+        val update_item_width = 64
     }
 }

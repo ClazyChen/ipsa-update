@@ -2,10 +2,13 @@ package fpga
 
 import chisel3._
 import chisel3.util._
+import chisel3.stage._
 
 // double-port SRAM
 // 1 port only used for R and
 // the other port only used for W
+
+// ADD : support R&W at the same time
 
 // does not support masked write
 
@@ -32,9 +35,12 @@ class SRAM(capacity: Int, data_width: Int) extends Module {
     io.r.data := DontCare
     when (io.w.en) {
         mem.write(io.w.addr, io.w.data)
-    } .otherwise {
-        when (io.r.en) {
-            io.r.data := mem.read(io.r.addr)
-        }
+    }
+    when (io.r.en) {
+        io.r.data := mem.read(io.r.addr)
     }
 }
+
+// object SRAM_OBJ extends App {
+//     (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new SRAM(256, 64))))
+// }
