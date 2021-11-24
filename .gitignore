@@ -22,3 +22,6 @@ vivado/xdma_0_ex
 .VSCodeCounter
 stat.py
 *.lock
+.metals
+*.db
+*.log
