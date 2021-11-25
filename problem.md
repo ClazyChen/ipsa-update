@@ -32,7 +32,7 @@
 
 + *virtualStage.scala*
 
-    1. The modification has error when `en` is `false`. see *virtualStage_tester.scala*
+    1. The modification has error when `en` is `false`. see *virtualStageTest.scala*
 
     ```scala
     class VirtualStage extends Module {
