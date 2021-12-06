@@ -47,6 +47,8 @@ object const {
 
     object CTRL /* controller */ {
         val update_item_capacity = PDQ.capacity
-        val update_item_width = 16
+        val update_opcode_width = 4
+        val update_parameter_width = 12
+        val update_item_width = update_opcode_width + update_parameter_width
     }
 }

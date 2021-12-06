@@ -13,14 +13,14 @@ class VirtualStageModify extends Bundle {
 // PHV[addr] = data
 class VirtualStage extends Module {
     val io = IO(new Bundle {
-        val pipe = new PipelinePause
+        val pipe = new Pipeline
         val mod  = new VirtualStageModify
     })
 
     val addr = RegInit(0.U(const.PHV.offset_width.W))
     val data = RegInit(0.U(8.W))
 
-    val (phv, _) = init.pipeline(io.pipe)
+    val phv = init.pipeline(io.pipe)
     io.pipe.phv_out.data(addr) := data
 
     when (io.mod.en) {

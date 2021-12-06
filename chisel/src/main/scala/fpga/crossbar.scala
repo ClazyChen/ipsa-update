@@ -7,7 +7,7 @@ import chisel3.stage._
 class CrossbarModify extends Bundle {
     val en = Input(Bool())
     val input_id = Input(UInt(const.processor_id_width.W))
-    val output_onehot = Input(UInt(const.processor_number.W))
+    val output_id = Input(UInt(const.processor_id_width.W))
 }
 
 /**
@@ -25,16 +25,14 @@ where O = CROSSBAR
 class Crossbar extends Module {
     val io = IO(new Bundle {
         val pipe = new Pipeline
-        val pause = Vec(const.processor_number, Input(Bool()))
         val iproc = Vec(const.processor_number, new Pipeline)
         val mod = new CrossbarModify
     })
 
-    val cross_level_pipe = Wire(Vec(const.processor_number, new PipelinePause))
+    val cross_level_pipe = Wire(Vec(const.processor_number, new Pipeline))
     for (j <- 0 until const.processor_number) {
         cross_level_pipe(j).ready_next := true.B
         io.iproc(j) >> cross_level_pipe(j)
-        cross_level_pipe(j).pause := io.pause(j)
     }
     cross_level_pipe.map(init.pipeline(_))
 
@@ -55,6 +53,11 @@ class Crossbar extends Module {
     }
 
     when (io.mod.en) {
-        crosspoints(io.mod.input_id) := io.mod.output_onehot
+        val temp = Wire(Vec(const.processor_number, Bool()))
+        temp(0) := false.B
+        for (j <- 1 until const.processor_number) {
+            temp(j) := io.mod.output_id === j.U
+        }
+        crosspoints(io.mod.input_id) := temp.asUInt
     }
 }

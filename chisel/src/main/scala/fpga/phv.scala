@@ -44,7 +44,7 @@ class Pipeline extends Bundle {
     def >>(inner: Pipeline) = { // embed inner interface in this (input port)
         this.ready_prev  := inner.ready_prev
         inner.phv_in     := this.phv_in
-        next
+        inner
     }
     // def <<-(outer: Pipeline) = {
     //     outer.ready_prev := this.ready_prev
@@ -54,7 +54,7 @@ class Pipeline extends Bundle {
     def <<(outer: Pipeline) = { // embed this interface in outer (output port)
         this.ready_next  := outer.ready_next
         outer.phv_out    := this.phv_out
-        next
+        outer
     }
     // def >>-(inner: Pipeline) = {
     //     inner.ready_next := this.ready_next

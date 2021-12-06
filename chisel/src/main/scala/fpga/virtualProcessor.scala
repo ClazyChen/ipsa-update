@@ -24,7 +24,6 @@ class VirtualProcessor extends Module {
 
     val virtualStage = for (j <- 0 until const.PROC.cycle_number-1) yield {
         val exe = Module(new VirtualStage)
-        exe.io.pipe.pause := io.pipe.pause
         exe.io.mod    := io.mod.vsb_mod.vs_mod
         exe.io.mod.en := io.mod.vsb_mod.vs_mod.en && io.mod.vsb_mod.vs_id === j.U
         exe

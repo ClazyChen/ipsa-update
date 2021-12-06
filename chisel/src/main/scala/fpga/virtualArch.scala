@@ -25,14 +25,13 @@ class VirtualArchitecture extends Module {
     })
 
     val xbar = Module(new Crossbar) // xbar after proc(j), pause according to proc(j+1)
-    xbar.io.pause := VecInit(Cat(io.pause.asUInt(const.processor_number-2,0),false.B).asBools)
     xbar.io.mod <> io.mod.xbar_mod
     io.pipe >> xbar.io.pipe << io.pipe
 
     val proc =  for (j <- 0 until const.processor_number) yield {
         val exe = Module(new VirtualProcessor)
         xbar.io.iproc(j) ~ exe.io.pipe ~ xbar.io.iproc(j)
-        exe.io.pipe.pause := io.pipe.pause(j)
+        exe.io.pipe.pause := io.pause(j)
         exe.io.mod := 0.U.asTypeOf(new VirtualProcessorModify)
         when (io.mod.proc_id === j.U) {
             exe.io.mod := io.mod.proc_mod

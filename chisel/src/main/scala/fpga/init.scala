@@ -28,7 +28,7 @@ object init {
         pipe.phv_out := phv
         pipe.ready_prev := false.B
 
-        val release = ~pipe.pause && (pipe.ready_next || ~phv.valid)
+        val release = ~pipe.pause // not pause means release
         when (release) {
             pipe.ready_prev := true.B
             phv := pipe.phv_in

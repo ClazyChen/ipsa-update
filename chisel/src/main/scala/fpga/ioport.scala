@@ -36,10 +36,10 @@ class InPort extends Module {
         }
     }
     
-    enq_data.en := io.port_in.valid
-    enq_data.data := io.port_in.data
-    enq_last.en := io.port_in.valid
-    enq_last.data := io.port_in.last
+    io.enq_data.en := io.port_in.valid
+    io.enq_data.data := io.port_in.data
+    io.enq_last.en := io.port_in.valid
+    io.enq_last.data := io.port_in.last
 }
 
 class OutPort extends Module {
@@ -64,8 +64,8 @@ class OutPort extends Module {
         is (sStart) {
             io.port_out.valid := true.B
             io.port_out.last := io.deq_last.data
-            io.port_out.data := phv.data(const.bits_per_cycle-1,0)
-            when (io.deq_last.data) { 
+            io.port_out.data := phv.data
+            when (io.deq_last.data(0)) { 
                 when (io.phv_in.valid) { // continuous small packet
                     io.deq_data.en := true.B
                     io.deq_last.en := true.B
@@ -82,7 +82,7 @@ class OutPort extends Module {
             io.port_out.valid := true.B
             io.port_out.last := io.deq_last.data
             io.port_out.data := io.deq_data.data
-            when (io.deq_last.data) {
+            when (io.deq_last.data(0)) {
                 when (io.phv_in.valid) { // continuous packet
                     io.deq_data.en := true.B
                     io.deq_last.en := true.B
