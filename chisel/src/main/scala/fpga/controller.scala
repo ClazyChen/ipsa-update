@@ -13,7 +13,7 @@ USE A large FIFO to describe an update operation
 4 (opcode) + 6 (id1) + 6 (id2)
 4 (opcode) + 12 (imm)
 
-NOP   0000
+WAIT  0000 wait some cycles
 PAUSE 1000 pause at the given PROC's gateway
 CONT  0100 continue (delete all pause marks)
 SETXB 0010 set crossbar (id1 -> id2)
@@ -36,7 +36,7 @@ class ControllerPrimitive extends Bundle {
 }
 
 object ControllerPrimitiveType {
-    val NOP  = 0.U(4.W)
+    val WAIT = 0.U(4.W)
     val PAUS = 8.U(4.W)
     val CONT = 4.U(4.W)
     val STXB = 2.U(4.W)
@@ -63,7 +63,8 @@ class Controller extends Module {
 
     io.ctrl := 0.U.asTypeOf(new VirtualArchitectureModify)
 
-    val sEnq :: sDeq :: sWait :: Nil = Enum(3)
+    val sEnq :: sDeq :: sWait :: sSuspend :: Nil = Enum(4)
+    val suspendTime = RegInit(0.U(const.CTRL.suspend_time_width.W))
     val status = RegInit(sWait)
 
     switch (status) {
@@ -83,7 +84,12 @@ class Controller extends Module {
                 val primitive = fifo.io.deq.data.asTypeOf(new ControllerPrimitive)
                 io.ctrl.proc_id := primitive.proc_id()
                 switch (primitive.opcode) {
-                    is (ControllerPrimitiveType.NOP) {}
+                    is (ControllerPrimitiveType.WAIT) {
+                        when (primitive.parameters > 0.U) {
+                            suspendTime := primitive.parameters
+                            status := sSuspend
+                        }
+                    }
                     is (ControllerPrimitiveType.PAUS) {
                         for (j <- 0 until const.processor_number) {
                             pause(j) := j.U < primitive.parameters
@@ -101,6 +107,13 @@ class Controller extends Module {
                 }
             } .otherwise {
                 status := sWait
+            }
+        }
+        is (sSuspend) {
+            val nextSuspendTime = suspendTime - 1.U
+            suspendTime := nextSuspendTime
+            when (nextSuspendTime === 0.U) {
+                status := sDeq
             }
         }
     }
