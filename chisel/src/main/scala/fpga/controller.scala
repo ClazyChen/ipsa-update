@@ -51,6 +51,7 @@ class Controller extends Module {
     val io = IO(new Bundle {
         val ins = new ControlInstruction
         val pause = Vec(const.processor_number, Output(Bool()))
+        val pause_fbuf = Output(Bool())
         val ctrl = Flipped(new VirtualArchitectureModify)
     })
 
@@ -59,7 +60,9 @@ class Controller extends Module {
     fifo.io.deq.en := false.B
 
     val pause = RegInit(VecInit(Seq.fill(const.processor_number)(false.B)))
+    val pause_fbuf = RegInit(false.B)
     io.pause := pause
+    io.pause_fbuf := pause_fbuf
 
     io.ctrl := 0.U.asTypeOf(new VirtualArchitectureModify)
 
@@ -94,6 +97,9 @@ class Controller extends Module {
                         for (j <- 0 until const.processor_number) {
                             pause(j) := j.U < primitive.parameters
                         }
+                        when (primitive.parameters === 0.U) {
+                            pause_fbuf := true.B
+                        }
                     }
                     is (ControllerPrimitiveType.CONT) {
                         pause := VecInit(Seq.fill(const.processor_number)(false.B))
@@ -119,3 +125,6 @@ class Controller extends Module {
     }
 }
 
+object CTRL_OBJ extends App {
+    (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new Controller)))
+}

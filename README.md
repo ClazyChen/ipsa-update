@@ -1,3 +1,9 @@
+# Memo
+
+If it is displayed that "Consider increasing the JVM heap using '-Xmx' ......" 
+
+TRY  `sbt -mem 4096` to run sbt.
+
 # Reconfigurable Switch on FPGA
 
 ## Primitive

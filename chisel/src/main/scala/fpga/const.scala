@@ -39,6 +39,7 @@ object const {
 
     object FBUF /* front buffer */ {
         val capacity = processor_number + PROC.cycle_number
+        val width = PHV.header_data_length * 8
     }
 
     object PDQ /* packet data queue */ {

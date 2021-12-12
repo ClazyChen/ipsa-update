@@ -10,7 +10,7 @@ a virtual switch with:
 core architecture (proc, xbar, sram)
 front buffer & fifo & controller
 
-NOW only IPSA arch + controller
+NOW only IPSA arch + controller + FBUF
 
 */
 
@@ -23,11 +23,14 @@ class VirtualSwitch extends Module {
         val ins = new ControlInstruction
     })
 
+    val fbuf = Module(new FrontBuffer)
     val arch = Module(new VirtualArchitecture)
-    io.pipe >> arch.io.pipe << io.pipe
+    (io.pipe >> fbuf.io.pipe) ~ arch.io.pipe << io.pipe
+    //io.pipe >> arch.io.pipe << io.pipe
 
     val ctrl = Module(new Controller)
     ctrl.io.ins <> io.ins
+    fbuf.io.pipe.pause := ctrl.io.pause_fbuf
 
     arch.io.pause := ctrl.io.pause
     arch.io.mod := io.mod

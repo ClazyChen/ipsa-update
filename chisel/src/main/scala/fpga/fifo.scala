@@ -19,7 +19,7 @@ class FIFO(capacity: Int, width: Int) extends Module {
     val io = IO(new Bundle {
         val enq = new FIFOEnqueuePort(width)
         val deq = new FIFODequeuePort(width)
-        val empty = Output(Bool())
+        // val empty = Output(Bool())
     })
 
     val sram = Module(new SRAM(capacity, width))
@@ -31,11 +31,6 @@ class FIFO(capacity: Int, width: Int) extends Module {
     val next_back = back + 1.U(addr_width.W)
     val nfull  = front =/= next_back
     val nempty = front =/= back
-    val nempty_reg = RegNext(nempty)
-
-    io.enq.valid := nfull
-    io.deq.valid := nempty_reg // wait a cycle and get the output
-    io.empty := ~nempty
 
     // enqueue interface
     val wen = nfull && io.enq.en
@@ -54,4 +49,9 @@ class FIFO(capacity: Int, width: Int) extends Module {
     when (ren) {
         front := next_front
     }
+
+    val deq_valid = RegNext(ren)
+    io.enq.valid := nfull
+    io.deq.valid := deq_valid // wait a cycle and get the output
+    // io.empty := ~nempty
 }
