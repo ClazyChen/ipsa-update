@@ -19,25 +19,17 @@ NOW only IPSA arch + controller + FBUF
 class VirtualSwitch extends Module {
     val io = IO(new Bundle {
         val pipe = new Pipeline
-        val mod = new VirtualArchitectureModify
-        val ins = new ControlInstruction
+        val pcie = new PcieBramInPort
     })
 
     val fbuf = Module(new FrontBuffer)
     val arch = Module(new VirtualArchitecture)
     (io.pipe >> fbuf.io.pipe) ~ arch.io.pipe << io.pipe
-    //io.pipe >> arch.io.pipe << io.pipe
+ 
+    val schd = Module(new Scheduler)
+    schd.io.pcie := io.pcie
+    fbuf.io.pipe.pause := schd.io.ctrl.pause_fbuf
+    arch.io.pause := schd.io.ctrl.pause
+    arch.io.mod := schd.io.ctrl.mod
 
-    val ctrl = Module(new Controller)
-    ctrl.io.ins <> io.ins
-    fbuf.io.pipe.pause := ctrl.io.pause_fbuf
-
-    arch.io.pause := ctrl.io.pause
-    arch.io.mod := io.mod
-    arch.io.mod := ctrl.io.ctrl
-
-}
-
-object VSW_OBJ extends App {
-    (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new VirtualSwitch)))
 }

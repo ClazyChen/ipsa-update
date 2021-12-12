@@ -54,4 +54,14 @@ object const {
         val suspend_time_width = log2Ceil(max_suspend_time)
         val update_item_width = update_opcode_width + update_parameter_width
     }
+
+    object PCIE {
+        val addr_width = 20
+        val data_width = 64
+    }
+
+    object STST /* set stage */ {
+        val capacity = 256 // TODO: should be set to the limit of stage-updates
+        val total_width = 64
+    }
 }

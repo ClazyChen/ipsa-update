@@ -40,7 +40,3 @@ class SRAM(capacity: Int, data_width: Int) extends Module {
         io.r.data := mem.read(io.r.addr)
     }
 }
-
-// object SRAM_OBJ extends App {
-//     (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new SRAM(256, 64))))
-// }

@@ -18,7 +18,8 @@ PAUSE 1000 pause at the given PROC's gateway
 CONT  0100 continue (delete all pause marks)
 SETXB 0010 set crossbar (id1 -> id2)
 SETGW 0001 set gateway (en + entry_id + proc_id + config_id)
-EMIT  1111
+STST  0111 set stages (output a set signal)
+STWT  0110 a no-operation cycle (need to provide proc_id)
 
 */
 
@@ -35,10 +36,18 @@ class ControllerPrimitive extends Bundle {
     def mod_para() = parameters(const.CTRL.update_parameter_width-const.processor_id_width-1, 0)
 }
 
+class ControlSignal extends Bundle {
+    val pause = Vec(const.processor_number, Output(Bool()))
+    val pause_fbuf = Output(Bool())
+    val mod = Flipped(new VirtualArchitectureModify)
+}
+
 object ControllerPrimitiveType {
     val WAIT = 0.U(4.W)
     val PAUS = 8.U(4.W)
     val CONT = 4.U(4.W)
+    val STST = 7.U(4.W)
+    val STWT = 6.U(4.W)
     val STXB = 2.U(4.W)
     val STGW = 1.U(4.W)
 }
@@ -50,9 +59,8 @@ class Controller extends Module {
 
     val io = IO(new Bundle {
         val ins = new ControlInstruction
-        val pause = Vec(const.processor_number, Output(Bool()))
-        val pause_fbuf = Output(Bool())
-        val ctrl = Flipped(new VirtualArchitectureModify)
+        val ctrl = new ControlSignal
+        val set_stage_en = Output(Bool())
     })
 
     val fifo = Module(new FIFO(capacity, item_width))
@@ -61,10 +69,11 @@ class Controller extends Module {
 
     val pause = RegInit(VecInit(Seq.fill(const.processor_number)(false.B)))
     val pause_fbuf = RegInit(false.B)
-    io.pause := pause
-    io.pause_fbuf := pause_fbuf
+    io.ctrl.pause := pause
+    io.ctrl.pause_fbuf := pause_fbuf
 
-    io.ctrl := 0.U.asTypeOf(new VirtualArchitectureModify)
+    io.ctrl.mod := 0.U.asTypeOf(new VirtualArchitectureModify)
+    io.set_stage_en := false.B
 
     val sEnq :: sDeq :: sWait :: sSuspend :: Nil = Enum(4)
     val suspendTime = RegInit(0.U(const.CTRL.suspend_time_width.W))
@@ -85,7 +94,7 @@ class Controller extends Module {
             fifo.io.deq.en := true.B
             when (fifo.io.deq.valid) {
                 val primitive = fifo.io.deq.data.asTypeOf(new ControllerPrimitive)
-                io.ctrl.proc_id := primitive.proc_id()
+                io.ctrl.mod.proc_id := primitive.proc_id()
                 switch (primitive.opcode) {
                     is (ControllerPrimitiveType.WAIT) {
                         when (primitive.parameters > 0.U) {
@@ -105,10 +114,19 @@ class Controller extends Module {
                         pause := VecInit(Seq.fill(const.processor_number)(false.B))
                     }
                     is (ControllerPrimitiveType.STXB) {
-                        io.ctrl.xbar_mod := primitive.mod_para().asTypeOf(new CrossbarModify)
+                        io.ctrl.mod.xbar_mod := primitive.mod_para().asTypeOf(new CrossbarModify)
                     }
                     is (ControllerPrimitiveType.STGW) {
-                        io.ctrl.proc_mod.gtw_mod := primitive.mod_para().asTypeOf(new VirtualGatewayModify)
+                        io.ctrl.mod.proc_mod.gtw_mod := primitive.mod_para().asTypeOf(new VirtualGatewayModify)
+                    }
+                    is (ControllerPrimitiveType.STST) {
+                        io.set_stage_en := true.B
+                    }
+                    is (ControllerPrimitiveType.STWT) {
+                        // STST need a delay of 1 cycle
+                        // although it can be pipelined
+                        // e.g. STST, STST, STWT, WAIT, ...
+                        // there must be a STWT after a chain of STSTs
                     }
                 }
             } .otherwise {
@@ -123,8 +141,4 @@ class Controller extends Module {
             }
         }
     }
-}
-
-object CTRL_OBJ extends App {
-    (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new Controller)))
 }

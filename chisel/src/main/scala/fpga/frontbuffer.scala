@@ -34,7 +34,3 @@ class FrontBuffer extends Module {
         }
     }
 }
-
-object FBUF_OBJ extends App {
-    (new ChiselStage).execute(Array("-X", "sverilog"), Seq(new ChiselGeneratorAnnotation(() => new FrontBuffer)))
-}
